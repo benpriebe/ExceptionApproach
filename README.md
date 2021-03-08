@@ -84,6 +84,29 @@ public class ExceptionResult
 }
 ```
 
+Example Http Response
+```json
+{
+    "message": "Example with root exception plus others",
+    "extras": [
+        {
+            "type": "information",
+            "content": "This is an info message with a parameter \"some dynamic juicy content just for you\"."
+        },
+        {
+            "type": "warning",
+            "content": "This is a warning message."
+        },
+        {
+            "type": "validation-error",
+            "content": "This is an error message."
+        }
+    ]
+}
+```
+
+Exception to StatusCode mapping
+
 ```
 ClientException -> Status400BadRequest 
 NotFoundClientException -> StatusCodes.Status404NotFound
