@@ -11,20 +11,11 @@ namespace Exception.Core
     {
         protected ResultBase()
         {
-            Messages = Array.Empty<Message>();
+            HasContent = false;
+            Messages = null;
         }
 
-        public ResultBase(params Message[] messages)
-        {
-            Messages = messages;
-        }
-
-        public ResultBase(IEnumerable<Message> messages)
-        {
-            Messages = messages;
-        }
-        
-       
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IEnumerable<Message> Messages { get; internal set; }
         
         [JsonIgnore]
@@ -38,14 +29,39 @@ namespace Exception.Core
     public class Result : ResultBase
     {
         
-        /// <summary>
-        /// Creates a success <see cref="Result"/> with no content.
-        /// </summary>
-        public static ResultBuilder<Result> New()
+        public Result WithInfo(string translatedMessage, object tokens = null)
         {
-            var result = new Result {  HasContent = false };
-            return new ResultBuilder<Result>(result);
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.Info(translatedMessage, tokens) }).ToArray();
+            return this;
         }
+
+        public Result WithWarning(string translatedMessage, object tokens = null)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.Warning(translatedMessage, tokens) }).ToArray();
+            return this;
+        }
+
+        public Result WithValidationError(string translatedMessage, object tokens = null)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.ValidationError(translatedMessage, tokens) }).ToArray();
+            return this;
+        }
+
+        public Result WithMessages(params Message[] messages)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(messages).ToArray();
+            return this;
+        }
+
+        public Result WithMessages(IEnumerable<Message> messages)
+        {
+            return WithMessages(messages.ToArray());
+        }
+
     }
 
     #endregion Result
@@ -55,20 +71,44 @@ namespace Exception.Core
     public class Result<TEntity> : ResultBase
     {
         private readonly TEntity value;
-
-        /// <summary>
-        /// Creates a success <see cref="Result"/> with no content.
-        /// </summary>
-        public static ResultBuilder<Result<TEntity>> New(TEntity value)
-        {
-            var result = new Result<TEntity>(value);
-            return new ResultBuilder<Result<TEntity>>(result);
-        }
         
         public Result(TEntity value)
         {
             HasContent = true;
             Value = value;
+        }
+        
+        public Result<TEntity> WithInfo(string translatedMessage, object tokens = null)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.Info(translatedMessage, tokens) }).ToArray();
+            return this;
+        }
+
+        public Result<TEntity> WithWarning(string translatedMessage, object tokens = null)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.Warning(translatedMessage, tokens) }).ToArray();
+            return this;
+        }
+
+        public Result<TEntity> WithValidationError(string translatedMessage, object tokens = null)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(new[] { Message.ValidationError(translatedMessage, tokens) }).ToArray();
+            return this;
+        }
+
+        public Result<TEntity> WithMessages(params Message[] messages)
+        {
+            Messages ??= Array.Empty<Message>();
+            Messages = Messages.Concat(messages).ToArray();
+            return this;
+        }
+
+        public Result<TEntity> WithMessages(IEnumerable<Message> messages)
+        {
+            return WithMessages(messages.ToArray());
         }
 
         [JsonPropertyName("data")]
@@ -88,11 +128,4 @@ namespace Exception.Core
     }
 
     #endregion
-
-    public enum ErrorMode
-    {
-        FirstError,
-        AllErrors
-    }
-
 }

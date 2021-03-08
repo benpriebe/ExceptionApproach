@@ -22,7 +22,9 @@ namespace Exception.Host.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult GetNoContent()
         {
-            Result result = Result.New().WithInfo(Resx.MsgKeyInfo, new { type = "some dynamic juicy content just for you" });
+            var result = new Result()
+                .WithInfo(Resx.MsgKeyInfo, new { type = "some dynamic juicy content just for you" });
+            
             if (result.Messages.Any())
                 return new OkObjectResult(result);
             return NoContent();
@@ -39,8 +41,17 @@ namespace Exception.Host.Controllers
         public IActionResult GetResultContent()
         {
             var response = new Response { Name = "jimbo jones", Mobile = "0400 123 123" };
+            var result = new Result<Response>(response);
             
-            Result<Response> result = Result<Response>.New(response)
+            return new OkObjectResult(result);
+        }
+        
+        [HttpGet("result-content-with-messages")]
+        public IActionResult GetResultContentComplex()
+        {
+            var response = new Response { Name = "jimbo jones", Mobile = "0400 123 123" };
+            
+            var result = new Result<Response>(response)
                 .WithInfo(Resx.MsgKeyInfo, new { type = "some dynamic juicy content just for you" })
                 .WithWarning(Resx.MsgKeyWarning);
             
@@ -48,13 +59,18 @@ namespace Exception.Host.Controllers
         }
 
         [HttpGet("bad-request")]
-        public IActionResult GetBadRequest()
+        public IActionResult GetBadRequestSimple()
         {
-            throw new ClientException(
-                Message.Info(Resx.MsgKeyInfo, new { type = "some dynamic juicy content just for you"}),
-                Message.Warning(Resx.MsgKeyWarning),
-                Message.Error(Resx.MsgKeyError)
-            );
+            throw new ClientException("Example of *NOT* using the resx translation with a token - {token}", new { token = "dangerous" });
+        }
+        
+        [HttpGet("bad-request-with-extra-messages")]
+        public IActionResult GetBadRequestComplex()
+        {
+            throw new ClientException("Example with root exception plus others")
+                .WithInfo(Resx.MsgKeyInfo, new { type = "some dynamic juicy content just for you"})
+                .WithWarning(Resx.MsgKeyWarning)
+                .WithError(Resx.MsgKeyError);
         }
         
         [HttpGet("not-found")]

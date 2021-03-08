@@ -6,11 +6,10 @@ using System.Security.Authentication;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Exception.Core;
 using Exception.Core.Exceptions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Exception.Host.Middleware
 {
@@ -22,7 +21,6 @@ namespace Exception.Host.Middleware
         {
             this.next = next;
         }
-
         
         public async Task Invoke(HttpContext context)
         {
@@ -52,29 +50,32 @@ namespace Exception.Host.Middleware
                 switch (e)
                 {
                     case NotAuthenticatedClientException ex:
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        await context.Response.WriteAsJsonAsync(ex.Messages);
+                        await GenerateResponse(ex, StatusCodes.Status401Unauthorized);
                         break;
 
                     case ForbiddenClientException ex:
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        await context.Response.WriteAsJsonAsync(ex.Messages);
+                        await GenerateResponse(ex, StatusCodes.Status403Forbidden);
                         break;
 
                     case NotFoundClientException<object> ex:
-                        context.Response.StatusCode = StatusCodes.Status404NotFound;
-                        await context.Response.WriteAsJsonAsync(ex.Messages);
+                        await GenerateResponse(ex, StatusCodes.Status404NotFound);
                         break;
 
                     case ClientException ex:
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        await context.Response.WriteAsJsonAsync(ex.Messages);
+                        await GenerateResponse(ex, StatusCodes.Status400BadRequest);
                         break;
                         
                     default:
                         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                         break;
                 };
+            }
+
+            async Task GenerateResponse(ClientException clientException, int statusCode)
+            {
+                var result = new ExceptionResult { Message = clientException?.Message, Extras = clientException?.Messages?.ToArray() };
+                context.Response.StatusCode = statusCode;
+                await context.Response.WriteAsJsonAsync(result);
             }
         }
     }
