@@ -8,7 +8,7 @@ for handling common failure conditions and translating those failures to Http re
 - Store **multiple messages (info, warnings, errors, validation errors)** within a `ClientException`
 - Create **localised, tokenised messages** instead of only messages in string format
 - Comes with **fluent validator** to validate most primitive types and generate localised messages
-- Use **Http Middleware** to convert `ClientException`s to Http `IActionResults`**
+- Use **Http Middleware** to convert `ClientException`s to Http `IActionResults`
 
 ## Throwing a ClientException
 
