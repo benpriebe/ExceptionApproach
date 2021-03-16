@@ -27,6 +27,7 @@ namespace Exception.Host
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseExceptionHandler(ExceptionHandler.Middleware());
             app.UseI18NMiddleware();
 
             if (env.IsDevelopment())
